@@ -11,7 +11,7 @@
 #include <sys/time.h>
 
 #define BUFFER_SIZE (100*1024*1024)
-#define NUM_THREADS 128
+#define NUM_THREADS 1024
 #define NUM_ITERATIONS 10
 
 
