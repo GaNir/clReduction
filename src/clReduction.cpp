@@ -112,8 +112,10 @@ int main(int argc, char** argv){
     "   const int idx = get_local_id(0);\n"
     "   local int shared["  QUOTE(NUM_THREADS) "];\n"
     "   shared[get_local_id(0)] = \n"
-    "       buffer[2*get_group_id(0)*get_local_size(0) + get_local_id(0)] + \n"
-    "       buffer[2*get_group_id(0)*get_local_size(0) + get_local_size(0) + get_local_id(0)];\n" 
+    "       buffer[4*get_group_id(0)*get_local_size(0) + get_local_id(0)] + \n"
+    "       buffer[4*get_group_id(0)*get_local_size(0) + 1*get_local_size(0) + get_local_id(0)] +\n" 
+    "       buffer[4*get_group_id(0)*get_local_size(0) + 2*get_local_size(0) + get_local_id(0)] +\n" 
+    "       buffer[4*get_group_id(0)*get_local_size(0) + 3*get_local_size(0) + get_local_id(0)];\n" 
     "   barrier(CLK_LOCAL_MEM_FENCE);\n"  
     "   if (" QUOTE(NUM_THREADS) ">= 1024) { if (idx < 512) {shared[idx] += shared[idx+512];barrier(CLK_LOCAL_MEM_FENCE); } }\n"
     "   if (" QUOTE(NUM_THREADS) ">= 512 ) { if (idx < 256) {shared[idx] += shared[idx+256];barrier(CLK_LOCAL_MEM_FENCE); } }\n"
@@ -199,7 +201,7 @@ int main(int argc, char** argv){
 
     size_t offset[1] = {0};  
     size_t local[1]  = {NUM_THREADS};
-    size_t global[1] = {BUFFER_SIZE/2};//{ALIGN(buffSize,local[0])};
+    size_t global[1] = {BUFFER_SIZE/4};//{ALIGN(buffSize,local[0])};
 
 
     for (int i=0;i<NUM_ITERATIONS;i++){
