@@ -109,9 +109,15 @@ int main(int argc, char** argv){
     const char *kernelCodeImage[] ={
     "   #pragma OPENCL EXTENSION cl_khr_int64_base_atomics: enable\n"
     "   void kernel reductionKernel(global const int* buffer, global long* out){\n"
-    "   const int idx = get_global_id(0);\n"
-   // "   atomic_inc(out);\n"  
-   "       atomic_add(out,buffer[idx]);\n"
+    "   const int idx = get_local_id(0);\n"
+    "   local int shared[1024];\n"  // todo: define for THREAD_NUM
+    "   shared[get_local_id(0)] = buffer[2*get_group_id(0)*get_local_size(0) + get_local_id(0)] + buffer[2*get_group_id(0)*get_local_size(0) + get_local_size(0) + get_local_id(0)];\n"
+    "   barrier(CLK_LOCAL_MEM_FENCE);\n"  
+    "   for (unsigned int s = get_local_size(0)/2; s > 0; s/=2){\n"
+    "       if (idx<s) shared[idx] += shared[idx+s];\n"
+    "       barrier(CLK_LOCAL_MEM_FENCE);\n"
+    "   }\n"
+    "   if (get_local_id(0) == 0) atomic_add(out,shared[0]);\n"
     "   }\n" }; 
 
 
@@ -174,7 +180,7 @@ int main(int argc, char** argv){
 
     size_t offset[1] = {0};  
     size_t local[1]  = {NUM_THREADS};
-    size_t global[1] = {BUFFER_SIZE};//{ALIGN(buffSize,local[0])};
+    size_t global[1] = {BUFFER_SIZE/2};//{ALIGN(buffSize,local[0])};
 
 
     for (int i=0;i<NUM_ITERATIONS;i++){
